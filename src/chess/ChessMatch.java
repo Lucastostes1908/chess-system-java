@@ -10,12 +10,25 @@ import boardgame.Piece;
 import boardgame.Position;
 import chess.pieces.King;
 import chess.pieces.Rook;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChessMatch {
 
     private int turn;
-    private Color currentPlayer;    
+    private Color currentPlayer;
     private Board board;
+
+    public List<Piece> piecesOnTheBoard = new ArrayList<>();
+    public List<Piece> capturedPieces = new ArrayList<>();
+
+    
+    
+    public ChessMatch(int turn, Color currentPlayer, Board board) {
+        this.turn = turn;
+        this.currentPlayer = currentPlayer;
+        this.board = board;
+    }
 
     public ChessMatch() {
         board = new Board(8, 8);
@@ -23,15 +36,14 @@ public class ChessMatch {
         turn = 1;
         currentPlayer = Color.WHITE;
     }
-    
-    public int getTurn(){
+
+    public int getTurn() {
         return turn;
     }
-    
-    public Color getCurrentPlayer(){
+
+    public Color getCurrentPlayer() {
         return currentPlayer;
     }
-    
 
     public ChessPiece[][] getPieces() {
         ChessPiece[][] mat = new ChessPiece[board.getRows()][board.getColumns()];
@@ -43,13 +55,12 @@ public class ChessMatch {
         return mat;
     }
 
-    public boolean[][] possibleMoves(ChessPosition sourcePosition){
+    public boolean[][] possibleMoves(ChessPosition sourcePosition) {
         Position position = sourcePosition.toPosition();
         validateSourcePosition(position);
         return board.piece(position).possibleMoves();
     }
-    
-    
+
     public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition) {
         Position source = sourcePosition.toPosition();
         Position target = targetPosition.toPosition();
@@ -64,6 +75,12 @@ public class ChessMatch {
         Piece p = board.removePiece(source);
         Piece capturedPiece = board.removePiece(target);
         board.placePiece(p, target);
+        
+        if(capturedPiece != null){
+            piecesOnTheBoard.remove(capturedPiece);
+            capturedPieces.add(capturedPiece);
+              
+        }
         return capturedPiece;
     }
 
@@ -71,10 +88,10 @@ public class ChessMatch {
         if (!board.thereIsAPiece(position)) {
             throw new ChessException("There is no piece on source position");
         }
-        if(currentPlayer != ((ChessPiece)board.piece(position)).getColor()){
+        if (currentPlayer != ((ChessPiece) board.piece(position)).getColor()) {
             throw new ChessException("The chosen piece is not yours");
         }
-        
+
         if (!board.piece(position).isThereAnyPossibleMove()) {
             throw new ChessException("There is no possible moves for the chosen piece.");
 
@@ -86,14 +103,15 @@ public class ChessMatch {
             throw new ChessException("The chosen piece can't move to target position");
         }
     }
-    
-    private void nextTurn(){
+
+    private void nextTurn() {
         turn++;
         currentPlayer = (currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
     }
 
     private void placeNewPiece(char column, int row, ChessPiece piece) {
         board.placePiece(piece, new ChessPosition(column, row).toPosition());
+        piecesOnTheBoard.add(piece);
     }
 
     private void initialSetup() {
